@@ -1,0 +1,35 @@
+/* Add your CSS styles here if you want to customize the appearance of the game board */
+.board {
+    display: grid;
+    grid-template-columns: repeat(8, 50px);
+    grid-template-rows: repeat(8, 50px);
+    gap: 2px;
+  }
+  
+  .cell {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    background-color: #e0e0e0;
+    cursor: pointer;
+  }
+  
+  .black {
+    color: #000;
+  }
+  
+  .white {
+    color: #fff;
+  }
+  
+  .empty {
+    cursor: pointer;
+  }
+  
+  .legal-move {
+    background-color: #7fffd4; /* Light blue for legal move highlighting */
+  }
+  
