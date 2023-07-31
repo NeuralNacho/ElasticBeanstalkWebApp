@@ -1,4 +1,12 @@
-/* Add your CSS styles here if you want to customize the appearance of the game board */
+body {
+  display: flex;
+  justify-content: center; /* Center the content horizontally */
+  align-items: center; /* Center the content vertically */
+  min-height: 100vh; /* Set a minimum height to fill the viewport */
+  margin: 0; /* Remove default margin to prevent unwanted spacing */
+  background-color: #f0f0f0; /* Set a background color for the webpage */
+}
+
 .board {
     display: grid;
     grid-template-columns: repeat(8, 70px);
