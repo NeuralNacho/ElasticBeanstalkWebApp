@@ -1,35 +1,42 @@
 /* Add your CSS styles here if you want to customize the appearance of the game board */
 .board {
     display: grid;
-    grid-template-columns: repeat(8, 50px);
-    grid-template-rows: repeat(8, 50px);
+    grid-template-columns: repeat(8, 70px);
+    grid-template-rows: repeat(8, 70px);
     gap: 2px;
   }
   
-  .cell {
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 30px;
-    background-color: #e0e0e0;
-    cursor: pointer;
-  }
-  
-  .black {
-    color: #000;
-  }
-  
-  .white {
-    color: #fff;
-  }
-  
-  .empty {
-    cursor: pointer;
-  }
-  
-  .legal-move {
-    background-color: #7fffd4; /* Light blue for legal move highlighting */
-  }
+.cell {
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  background-color: #3dae3d;
+  cursor: pointer;
+}
+
+.cell .white-disc {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%; /* Create a circular shape for the white disc */
+  background-color: #fff; /* White color for white disc */
+}
+
+.cell .black-disc {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%; /* Create a circular shape for the black disc */
+  background-color: #000; /* Black color for black disc */
+}
+
+.cell.empty {
+  background-color: #3dae3d;
+}
+
+
+.cell.legal-move {
+  background-color: #add8e6; /* Light blue for legal move highlighting */
+}
   

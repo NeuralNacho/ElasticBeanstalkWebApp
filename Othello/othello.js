@@ -1,18 +1,16 @@
 const boardSize = 8;
-const player1 = '⚫'; // Black
-const player2 = '⚪'; // White
 const emptyCell = '';
 
-let currentPlayer = player1;
+let currentPlayer = 'black';
 let board = createBoard();
 let legalMoves = [];
 
 function createBoard() {
   const board = new Array(boardSize * boardSize).fill(emptyCell);
-  board[27] = player1;
-  board[28] = player2;
-  board[35] = player2;
-  board[36] = player1;
+  board[27] = 'black';
+  board[28] = 'white';
+  board[35] = 'white';
+  board[36] = 'black';
   return board;
 }
 
@@ -23,12 +21,17 @@ function renderBoard() {
   for (let i = 0; i < boardSize * boardSize; i++) {
     const cell = document.createElement('div');
     cell.className = 'cell';
-    cell.innerText = board[i];
 
-    if (board[i] === player1) {
-      cell.classList.add('black');
-    } else if (board[i] === player2) {
-      cell.classList.add('white');
+    if (board[i] === 'black') {
+      const blackDisc = document.createElement('div');
+      blackDisc.className = 'black-disc';
+      cell.appendChild(blackDisc);
+
+    } else if (board[i] === 'white') {
+      const whiteDisc = document.createElement('div');
+      whiteDisc.className = 'white-disc';
+      cell.appendChild(whiteDisc);
+
     } else {
       cell.classList.add('empty');
       cell.addEventListener('click', () => handleMove(i));
@@ -50,7 +53,7 @@ function handleMove(index) {
 
   board[index] = currentPlayer;
   flipTiles(index);
-  currentPlayer = currentPlayer === player1 ? player2 : player1;
+  currentPlayer = currentPlayer === 'black' ? 'white' : 'black';
   updateLegalMoves();
   renderBoard();
 }
