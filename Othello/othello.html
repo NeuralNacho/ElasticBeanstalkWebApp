@@ -8,7 +8,41 @@
     <link type="icon" href="\NeuralNacho.github.io\favicon.ico">
 </head>
 <body>
-    <div class="board" id="board"></div>
+    <div class="container">
+        <div class = "rules">
+            <h1> Othello Rules: </h1>
+            <ol>
+                <li>Black places the first disc. </li>
+                <li>Place discs on squares where it surrounds a 
+                    sequence of discs of the opposite colour at both ends. 
+                    Blue highlighted squares show the possible moves.</li>
+                <li>The surrounded tiles flip to the opposite colour.</li>
+                <li>If a player has no move their turn passes.</li>
+                <li>The game ends when both players have no moves and the 
+                    winner is the player with the most tiles of their colour.</li>
+            </ol>
+        </div>
+
+        <div class="central-containter">
+            <p class="game-end-text"> </p> <!-- This is here so that board 
+            stay horizontally centred when game end text is displayed -->
+            <div class="board" id="board"></div>
+            <p class="game-end-text" id="game-end-text"> </p> 
+        </div>
+
+        <div class="right-container">
+            <div class="black-score" id="black-score"> 
+                <div> Black </div>
+                <div class="black-score-disc" id="black-score-disc"> </div>
+            </div>
+            <button class="undo-button" id="undo-button"> Undo </button>
+            <button class="reset-button" id="reset-button"> Reset </button>
+            <div class="white-score" id="white-score"> 
+                <div> White </div>
+                <div class="white-score-disc" id="white-score-disc"> </div>
+            </div>
+        </div>
+    </div>
     <script src="othello.js"></script>
 </body>
 </html>
