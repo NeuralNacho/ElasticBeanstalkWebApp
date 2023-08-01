@@ -1,20 +1,20 @@
 body {
   display: flex;
-  justify-content: center; /* Center the content horizontally */
-  align-items: center; /* Center the content vertically */
-  min-height: 100vh; /* Set a minimum height to fill the viewport */
-  margin: 0; /* Remove default margin to prevent unwanted spacing */
-  background-color: #f0f0f0; /* Set a background color for the webpage */
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: auto;
+  background-color: white;
 }
 
 .board {
-    display: grid;
-    grid-template-columns: repeat(8, 70px);
-    grid-template-rows: repeat(8, 70px);
-    gap: 2px;
-  }
-  
-.cell {
+  display: grid;
+  grid-template-columns: repeat(8, 70px);
+  grid-template-rows: repeat(8, 70px);
+  gap: 2px;
+}
+
+.cell{
   width: 70px;
   height: 70px;
   display: flex;
@@ -25,26 +25,22 @@ body {
   cursor: pointer;
 }
 
+.cell .black-disc { /* black-disc elements descended from cell elements  */
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: black;
+}
+
+
 .cell .white-disc {
   width: 50px;
   height: 50px;
-  border-radius: 50%; /* Create a circular shape for the white disc */
-  background-color: #fff; /* White color for white disc */
+  border-radius: 50%;
+  background-color: white;
 }
 
-.cell .black-disc {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%; /* Create a circular shape for the black disc */
-  background-color: #000; /* Black color for black disc */
-}
-
-.cell.empty {
-  background-color: #3dae3d;
-}
-
-
-.cell.legal-move {
-  background-color: #add8e6; /* Light blue for legal move highlighting */
+.cell.highlighted {
+  background-color: #add8e6;
 }
   
