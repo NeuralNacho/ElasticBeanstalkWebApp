@@ -268,6 +268,31 @@ function gameEnd() {
     gameEndText.textContent = "Game Over:" + result + score; 
 }
 
+function sendBoardStateToPython(boardState) {
+    const url = '/get_random_move';
+    const data = { board_state: boardState };
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => handleRandomMove(data.random_move))
+    .catch(error => console.error('Error:', error));
+}
+
+function handleRandomMove(randomMove) {
+    // Use the randomMove received from Python in your game logic
+    // For example: make a move on the board using the randomMove
+    console.log(randomMove);
+}
+
+sendBoardStateToPython(board);
+
+
 // Initialise the game:
 updateLegalMoves();
 renderBoard();
