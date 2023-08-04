@@ -40,4 +40,3 @@ if __name__ == '__main__':
 #     # This method will display the static page (html, css, js)
 #     return application.send_static_file('othello.html')
 # Lastly, change the href's in the html file to e.g. /static/othello.css
-# test
