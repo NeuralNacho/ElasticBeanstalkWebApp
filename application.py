@@ -21,7 +21,7 @@ def get_random_move():
         return jsonify({"error": "Invalid request method"})
 
 if __name__ == '__main__':
-    app.run(port = 5000, debug=True)
+    app.run(debug=True)
 
 # To do with separate flask server and webpage, don't need the index function
 # but will need to be carful with enabling ports etc.
