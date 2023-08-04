@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS
+# from flask_cors import CORS
 import random
 
 application = Flask(__name__)
-CORS(application)  # Enable CORS for all routes. 
+# CORS(application)  # Enable CORS for all routes. 
 # i.e. live server will have permission to talk to this server
 
 @application.route('/')
