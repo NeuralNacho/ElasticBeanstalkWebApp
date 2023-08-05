@@ -46,8 +46,11 @@ function renderBoard() {
                 cell.addEventListener('click', () => handleMove([row, col]))
                 // Need arrow function for a closure
                 if (legalMoves.some(move => {
-                    return move[0] == row && move[1] == col})) {  // some() method
-                    cell.classList.add('highlighted');
+                    return move[0] == row && move[1] == col})) {
+                    cell.classList.add('highlighted')
+                    const highlightedCell = document.createElement('div');
+                    highlightedCell.className = 'highlighted';
+                    cell.appendChild(highlightedCell)
                 }
             }
 
@@ -218,16 +221,20 @@ function renderScore() {
 }
 
 function updateScoreBorders() {
-    // Used when player turn changes
+    // Used when player turn changes. Used to change the shaddow
     const blackScore = document.getElementById('black-score');
     const whiteScore = document.getElementById('white-score');
     if (currentPlayer === 'black') { // Change borders of players for player turn
-        blackScore.style.borderWidth = '3px';
-        whiteScore.style.borderWidth = '0px';
+        blackScore.style.boxShadow = '0px 2px 10px rgba(0, 0, 0, 0.2)';
+        whiteScore.style.boxShadow = '';
+        blackScore.style.backgroundColor = 'rgb(240, 240, 240)';
+        whiteScore.style.backgroundColor = 'white';
     }
     else {
-        blackScore.style.borderWidth = '0px';
-        whiteScore.style.borderWidth = '3px';
+        blackScore.style.boxShadow = '';
+        whiteScore.style.boxShadow = '0px 2px 10px rgba(0, 0, 0, 0.2)';
+        blackScore.style.backgroundColor = 'white';
+        whiteScore.style.backgroundColor = 'rgb(240, 240, 240)';
     }
 }
 
@@ -294,3 +301,4 @@ function handleRandomMove(randomMove) {
 updateLegalMoves();
 renderBoard();
 renderScore();
+updateScoreBorders();

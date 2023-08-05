@@ -26,17 +26,7 @@ if __name__ == '__main__':
 # To do with separate flask server and webpage, don't need the index function
 # but will need to be carful with enabling ports etc.
 
-
-# To do the same think with everything on the same server do the following:
-# (This is the way it is currently)
-# Change the project structure:
-# project_folder/
-# ├── static/
-# │   ├── index.html
-# ├── application.py
-# Add the following function to the Python application:
-# @application.route('/')
-# def index():
-#     # This method will display the static page (html, css, js)
-#     return application.send_static_file('othello.html')
-# Lastly, change the href's in the html file to e.g. /static/othello.css
+# EC-2 notes: For the service role for some reason it shows the instance profile
+# as a role but this won't work. Also don't use existing service role but rather 
+# aws-elasticbeanstalk-service-role under create service role.
+# Then for instance profile set up the role on IAM as desribed by the documentation.
