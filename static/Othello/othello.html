@@ -5,17 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Othello Game</title>
     <link rel="stylesheet" type="text/css" href="othello.css" >
+    <link rel="stylesheet" href="prism.css">
+    <script src="prism.js"></script>
     <link rel="icon" href="/static/favicon.ico">
 </head>
 <body>
     <div class="container">
         <div class = "left-container">
-            <div class="inner">
-                <!-- Logo -->
+            <!-- <div class="inner">
                     <a href="/static/index.html" class="logo">
-                        <span class="symbol"><img src="/static/images/logo.svg" alt="" /></span><span class="title">Phantom</span>
+                        <span class="symbol"><img src="/static/images/logo.svg" alt="" /></span><span class="title"></span>
                     </a>
-            </div>
+            </div> -->
             <div class = "rules-drop-down">
                 <div class = "rules-header" id = "rules-header">
                     <h2> Othello Rules: </h2><span class= "arrow" >&#9660;</span>
@@ -33,8 +34,8 @@
                     </ol>
                 </div>
             </div>
-            <div class = "code-button">
-                Code
+            <div class = "code-button" id = "code-button">
+                View Code
             </div>
         </div>
 
@@ -56,6 +57,24 @@
             </div>
         </div>
     </div>
+
+    <!-- Following for overlay when 'View Code' button is clicked -->
+    <div class="overlay" id="overlay">
+        <div class="modal">
+          <button id="closeButton" class="close-button">X</button>
+          <div class="tabs">
+            <button class="tab-button" id="tab1">HTML</button>
+            <button class="tab-button" id="tab2">CSS</button>
+            <button class="tab-button" id="tab3">Javascript</button>
+          </div>
+          <div class="tab-content" id="tabContent1">
+          </div>
+          <div class="tab-content" id="tabContent2">
+          </div>
+          <div class="tab-content" id="tabContent3">
+          </div>
+        </div>
+      </div>
     <script src="othello.js"></script>
 </body>
 </html>

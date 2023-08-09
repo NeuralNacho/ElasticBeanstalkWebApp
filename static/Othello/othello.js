@@ -238,14 +238,14 @@ function updateScoreBorders() {
     if (currentPlayer === 'black') { // Change scoreboard of players for player turn
         blackScore.style.boxShadow = '0px 2px 10px rgba(0, 0, 0, 0.2)';
         whiteScore.style.boxShadow = '';
-        blackScore.style.backgroundColor = 'rgb(248, 237, 180)';
+        blackScore.style.backgroundColor = 'rgb(242, 211, 98)';
         whiteScore.style.backgroundColor = 'white';
     }
     else {
         blackScore.style.boxShadow = '';
         whiteScore.style.boxShadow = '0px 2px 10px rgba(0, 0, 0, 0.2)';
         blackScore.style.backgroundColor = 'white';
-        whiteScore.style.backgroundColor = 'rgb(248, 237, 180)';
+        whiteScore.style.backgroundColor = 'rgb(242, 211, 98)';
     }
 }
 
@@ -314,3 +314,56 @@ updateLegalMoves();
 renderBoard();
 renderScore();
 updateScoreBorders();
+
+
+// Code for the overlay
+const codeButton = document.getElementById('code-button');
+const overlay = document.getElementById('overlay');
+const closeButton = document.getElementById('closeButton');
+const tabButtons = document.querySelectorAll('.tab-button');
+const tabContents = document.querySelectorAll('.tab-content');
+
+codeButton.addEventListener('click', async () => {
+  overlay.style.display = 'flex';
+
+  // Load and display content for each tab from different files
+  const htmlResponse = await fetch('othello.html');
+  const htmlContent = await htmlResponse.text();
+  const htmlEscapedContent = escapeHtml(htmlContent); // Escape HTML entities
+  tabContents[0].innerHTML = `<pre><code class="language-html">${htmlEscapedContent}</code></pre>`;
+  
+  const cssResponse = await fetch('othello.css');
+  const cssContent = await cssResponse.text();
+  tabContents[1].innerHTML = `<pre><code class="language-css">${cssContent}</code></pre>`;
+
+  const jsResponse = await fetch('othello.js');
+  const jsContent = await jsResponse.text();
+  tabContents[2].innerHTML = `<pre><code class="language-javascript">${jsContent}</code></pre>`;
+
+
+  // Show the content of the first tab by default
+  tabContents[0].style.display = 'block';
+  Prism.highlightAll();
+});
+
+// Function to escape HTML entities
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+closeButton.addEventListener('click', () => {
+  overlay.style.display = 'none';
+});
+
+tabButtons.forEach(tabButton => {
+  tabButton.addEventListener('click', () => {
+    tabContents.forEach(content => {
+      content.style.display = 'none';
+    });
+    const contentId = tabButton.id.replace('tab', 'tabContent');
+    // ^ e.g. tab1 becomes tabContent1
+    document.getElementById(contentId).style.display = 'block';
+  });
+});
