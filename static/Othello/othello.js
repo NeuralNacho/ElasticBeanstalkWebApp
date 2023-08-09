@@ -1,6 +1,8 @@
 const emptyCell = ''; // Empty cells are empty
 const undoButton = document.getElementById('undo-button');
 const resetButton = document.getElementById('reset-button');
+const rulesHeader = document.getElementById('rules-header');
+const rulesContent = document.getElementById('rules-content');
 
 let currentPlayer = 'black';
 let board = createBoard(); // Could use class but this is simpler
@@ -176,7 +178,8 @@ undoButton.addEventListener('click', () => {
         renderScore();
         updateScoreBorders();
         const gameEndText = document.getElementById('game-end-text');
-        gameEndText.textContent = ""; 
+        gameEndText.textContent = "";
+        gameEndText.style.display = "none";
         // Clear this text so that you can undo from game end
     }
     });
@@ -192,9 +195,17 @@ resetButton.addEventListener('click', () => {
     renderScore();
     updateScoreBorders();
     const gameEndText = document.getElementById('game-end-text');
-    gameEndText.textContent = ""; 
+    gameEndText.textContent = "";
+    gameEndText.style.display = "none";
     // Clear this text so that you can reset from game end
     });
+
+// Set up rules drop down button: 
+rulesHeader.addEventListener('click', () => {
+    rulesContent.style.display = rulesContent.style.display === 'none' || rulesContent.style.display === '' ? 'block' : 'none';
+    rulesHeader.querySelector('.arrow').textContent = rulesContent.style.display === 'none' ? '\u25BC' : '\u25B2';
+});
+
 
 function renderScore() {
     let noBlackDiscs = 0;
@@ -224,17 +235,17 @@ function updateScoreBorders() {
     // Used when player turn changes. Used to change the shaddow
     const blackScore = document.getElementById('black-score');
     const whiteScore = document.getElementById('white-score');
-    if (currentPlayer === 'black') { // Change borders of players for player turn
+    if (currentPlayer === 'black') { // Change scoreboard of players for player turn
         blackScore.style.boxShadow = '0px 2px 10px rgba(0, 0, 0, 0.2)';
         whiteScore.style.boxShadow = '';
-        blackScore.style.backgroundColor = 'rgb(240, 240, 240)';
+        blackScore.style.backgroundColor = 'rgb(248, 237, 180)';
         whiteScore.style.backgroundColor = 'white';
     }
     else {
         blackScore.style.boxShadow = '';
         whiteScore.style.boxShadow = '0px 2px 10px rgba(0, 0, 0, 0.2)';
         blackScore.style.backgroundColor = 'white';
-        whiteScore.style.backgroundColor = 'rgb(240, 240, 240)';
+        whiteScore.style.backgroundColor = 'rgb(248, 237, 180)';
     }
 }
 
@@ -272,6 +283,7 @@ function gameEnd() {
     }
 
     const gameEndText = document.getElementById('game-end-text');
+    gameEndText.style.display = 'flex';
     gameEndText.textContent = "Game Over:" + result + score; 
 }
 

@@ -21,7 +21,7 @@ def get_random_move():
         return jsonify({"error": "Invalid request method"})
 
 if __name__ == '__main__':
-    application.run(debug=True)
+    application.run(debug = True)
 
 # To do with separate flask server and webpage, don't need the index function
 # but will need to be carful with enabling ports etc.
@@ -30,3 +30,8 @@ if __name__ == '__main__':
 # as a role but this won't work. Also don't use existing service role but rather 
 # aws-elasticbeanstalk-service-role under create service role.
 # Then for instance profile set up the role on IAM as desribed by the documentation.
+#
+# HTTPS notes: get SSL certificate but setting up certbot on EC2 instance.
+# Done by following certbot installation instructions for NGINX an PIP. (use dnf instead of apt)
+# ssh into server by running ssh -i pipelined-portfolio-key-pair.pem ec2-user@18.170.241.179
+# from command line

@@ -9,31 +9,44 @@
 </head>
 <body>
     <div class="container">
-        <div class = "rules">
-            <h1> Othello Rules: </h1>
-            <ol>
-                <li>Black places the first disc. </li>
-                <li>Place discs on squares where it surrounds a 
-                    sequence of discs of the opposite colour at both ends. 
-                    Blue highlighted squares show the possible moves.</li>
-                <li>The surrounded tiles flip to the opposite colour.</li>
-                <li>If a player has no move their turn passes.</li>
-                <li>The game ends when both players have no moves and the 
-                    winner is the player with the most tiles of their colour.</li>
-            </ol>
+        <div class = "left-container">
+            <div class="inner">
+                <!-- Logo -->
+                    <a href="/static/index.html" class="logo">
+                        <span class="symbol"><img src="/static/images/logo.svg" alt="" /></span><span class="title">Phantom</span>
+                    </a>
+            </div>
+            <div class = "rules-drop-down">
+                <div class = "rules-header" id = "rules-header">
+                    <h2> Othello Rules: </h2><span class= "arrow" >&#9660;</span>
+                </div>
+                <div class = "rules-content" id = "rules-content">
+                    <ol>
+                        <li>Black places the first disc. </li>
+                        <li>Place discs on squares where it surrounds a 
+                            sequence of discs of the opposite colour at both ends. 
+                            Blue highlighted squares show the possible moves.</li>
+                        <li>The surrounded tiles flip to the opposite colour.</li>
+                        <li>If a player has no move their turn passes.</li>
+                        <li>The game ends when both players have no moves and the 
+                            winner is the player with the most tiles of their colour.</li>
+                    </ol>
+                </div>
+            </div>
+            <div class = "code-button">
+                Code
+            </div>
         </div>
 
-        <div class="central-containter">
-            <p class="game-end-text"> </p> <!-- This is here so that board 
-            stay horizontally centred when game end text is displayed -->
+        <div class="central-container">
             <div class="board" id="board"></div>
-            <p class="game-end-text" id="game-end-text"> </p> 
+            <div class="game-end-text" id="game-end-text"> </div> 
         </div>
 
         <div class="right-container">
             <div class="black-score" id="black-score"> 
                 <div> Black </div>
-                <div class="black-score-disc" id="black-score-disc"> </div>
+                <div class="black-score-disc" id="black-score-disc"></div>
             </div>
             <button class="undo-button" id="undo-button"> Undo </button>
             <button class="reset-button" id="reset-button"> Reset </button>

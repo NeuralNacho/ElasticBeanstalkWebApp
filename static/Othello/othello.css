@@ -7,39 +7,88 @@ body {
   background-color: rgb(62, 62, 62);
   font-family: 'Verdana', sans-serif;
 
-  background-image: url('/static/images/background.jpg');
-  background-size: ; /* Adjust as needed */
-  background-repeat: repeat;
+  background-image: url('/static/images/moroccan-flower-dark.jpg');
+  background-size: ''; /* Adjust as needed */
   background-position: center;
 }
 
 .container {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  background-color: white;
-  width: 90%;
-  border-radius: 10px;
-  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+  /* background-color: white; */
+  width: 85%;
 }
 
-.rules {
-  width: 380px;
+.left-container {
+  height: 612px; /* Height of the central container */
+  display: flex;
+  flex-direction: column;
+  /* justify-content: space-between; */
   text-align: justify; /* Aligns both left and right */
   font-family: 'Verdana', sans-serif;
-  margin-right: 100px;
+  width: 380px;
+  padding: 10px;
+  padding-right: 30px;
+  gap: 20px;
 }
 
-.rules h1 {
-  text-align: center;
+.rules-drop-down {
+  border-radius: 10px;
+  background-color: white;
+  padding-right: 10px;
+  padding-right: 30px;
+}
+
+.rules-header {
+  padding-left: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.arrow {
+  font-size: 20px;
+  margin-left: 10px;
+}
+
+.rules-content {
+  display: none;
+}
+
+.code-button {
+  background-color: white;
+  color: black;
+  height: 100px;
+  border: 2px solid #000;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-family: Verdana, sans-serif;
   font-size: 24px;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
 }
 
-.central-contatiner {
+.code-button:hover {
+  background-color: #ecf8ff;
+  transform: scale(1.05);
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.central-container {
+  background-color: white;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  padding: 20px;
+  width: 574px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .board {
@@ -66,7 +115,6 @@ body {
   background-color: black;
 }
 
-
 .cell .white-disc {
   width: 50px;
   height: 50px;
@@ -87,21 +135,32 @@ body {
 } */
 
 .game-end-text {
-  display: flex;
+  background-color: white;
+  color: black;
+  width: 400px;
+  height: 100px;
+  text-align: center;
   justify-content: center;
-  height: 30px;
+  align-items: center;
+  display: none;
+  position: absolute;
+  z-index: 2;
+  border-radius: 20px;
+  opacity: 0.9;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
   font-size: 24px;
 }
 
 .right-container {
+  background-color: none;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: 480px;
+  width: 380px;
+  padding: 10px;
 }
 
 .undo-button {
-  margin-left: 40px;
   background-color: white;
   color: black;
   width: 130px;
@@ -126,7 +185,6 @@ body {
 }
 
 .reset-button {
-  margin-left: 40px;
   background-color: white;
   color: black;
   width: 130px;
@@ -151,8 +209,7 @@ body {
 }
 
 .black-score {
-  margin-left: 40px;
-  background-color: white;
+  background-color: rgb(248, 237, 180);
   color: black;
   width: 130px;
   height: 130px;
@@ -168,7 +225,6 @@ body {
 }
 
 .white-score {
-  margin-left: 40px;
   background-color: white; /* #ffd78d; */
   color: black;
   width: 130px;
@@ -209,4 +265,30 @@ body {
   font-family: Verdana, sans-serif;
   margin-top: 10px;
 }
-  
+
+.inner {
+  padding: 10px;
+  background-color: white;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  padding-left: 20px;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.inner .logo {
+  display: flex;
+  align-items: center;
+  color: inherit;
+  font-weight: 900;
+  letter-spacing: 0.35em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.inner .logo .symbol img {
+  display: block;
+  width: 4em;
+  height: 4em;
+  padding-right: 10px;
+}
