@@ -81,6 +81,28 @@ body {
   box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.3);
 }
 
+.computer-move-button {
+  background-color: white;
+  color: black;
+  height: 50px;
+  width: 220px;
+  border: 2px solid #000;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 24px;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+}
+
+.computer-move-button:hover {
+  background-color: #ecf8ff;
+  transform: scale(1.05);
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.3);
+}
+
 .central-container {
   background-color: white;
   display: flex;
@@ -211,7 +233,7 @@ body {
 }
 
 .black-score {
-  background-color: rgb(242, 211, 98);
+  background-color: rgb(210, 210, 210);
   color: black;
   width: 130px;
   height: 130px;

@@ -206,7 +206,6 @@ rulesHeader.addEventListener('click', () => {
     rulesHeader.querySelector('.arrow').textContent = rulesContent.style.display === 'none' ? '\u25BC' : '\u25B2';
 });
 
-
 function renderScore() {
     let noBlackDiscs = 0;
     for (let row = 0; row < 8; row++) {
@@ -238,14 +237,14 @@ function updateScoreBorders() {
     if (currentPlayer === 'black') { // Change scoreboard of players for player turn
         blackScore.style.boxShadow = '0px 2px 10px rgba(0, 0, 0, 0.2)';
         whiteScore.style.boxShadow = '';
-        blackScore.style.backgroundColor = 'rgb(242, 211, 98)';
+        blackScore.style.backgroundColor = 'rgb(210, 210, 210)';
         whiteScore.style.backgroundColor = 'white';
     }
     else {
         blackScore.style.boxShadow = '';
         whiteScore.style.boxShadow = '0px 2px 10px rgba(0, 0, 0, 0.2)';
         blackScore.style.backgroundColor = 'white';
-        whiteScore.style.backgroundColor = 'rgb(242, 211, 98)';
+        whiteScore.style.backgroundColor = 'rgb(210, 210, 210)';
     }
 }
 
@@ -287,27 +286,50 @@ function gameEnd() {
     gameEndText.textContent = "Game Over:" + result + score; 
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    // This code will run when the page is loaded
-    sendRequestForRandomMove();
+// Computer move button:
+const computerMoveButton = document.getElementById('computer-move-button');
+computerMoveButton.addEventListener('click', () => {
+    sendRequestForMove();
 });
 
-function sendRequestForRandomMove() {
-    const url = '/get_random_move';
-    // Important to use full address her to connect to different server
+function sendRequestForMove() {
+    if (turnsPassed == 2) {
+        return
+    }
+    const url = '/get_move';
+    const requestData = { // Data being sent in request
+        board: board,
+        current_player: currentPlayer,
+        turns_passed: turnsPassed
+    };
+    
     fetch(url, {
         method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData)
     })
     .then(response => response.json())
-    .then(data => handleRandomMove(data.random_move))
+    .then(data => makeMove(data.move))
     .catch(error => console.log('Error:', error));
 }
 
-function handleRandomMove(randomMove) {
-    console.log(randomMove)
-    // Use the randomMove received from Python in your game logic
-    // For example: make a move on the board using the randomMove
+function makeMove(moveIndex) {
+    handleMove(moveIndex);
 }
+
+document.addEventListener("keydown", function(event) {
+    if (event.key === " ") {
+        if (currentPlayer == 'black') {
+            sendRequestForMove();
+        }
+        else {
+            const randomMove = legalMoves[Math.floor(Math.random() * legalMoves.length)]
+            handleMove(randomMove);
+        }
+    }
+});
 
 // Initialise the game:
 updateLegalMoves();
@@ -324,6 +346,7 @@ const tabButtons = document.querySelectorAll('.tab-button');
 const tabContents = document.querySelectorAll('.tab-content');
 
 codeButton.addEventListener('click', async () => {
+  // async so that fetch methods work (won't just return a promise)
   overlay.style.display = 'flex';
 
   // Load and display content for each tab from different files
