@@ -1,5 +1,6 @@
 from flask import Flask
 from backend.Othello.get_othello_move import othello_blueprint
+import cProfile
 # from flask_cors import CORS
 
 application = Flask(__name__)

@@ -1,69 +1,294 @@
-import numpy as np
+class OthelloGameState:
+    def __init__(self, black_bitboard, white_bitboard, current_player):
+        # Three game state variables:
+        self.black_bitboard = black_bitboard
+        self.white_bitboard = white_bitboard
+        self.current_player = current_player
 
-def get_numpy_board(board):
-    # will have board s.t. 0 is empty 1 is black 2 is white
-    numpy_board = np.zeros(64, dtype = int)
+def get_game_state(board, current_player):
+    black_bitboard, white_bitboard = get_bitboards(board)
+    return OthelloGameState(black_bitboard, white_bitboard, current_player)
+
+def get_bitboards(board):
+    black_bitboard = 0
+    white_bitboard = 0
+
     for row in range(8):
         for col in range(8):
+            index = row * 8 + col
             if board[row][col] == 'black':
-                numpy_board[row*8 + col] = 1
+                black_bitboard |= 1 << index
             elif board[row][col] == 'white':
-                numpy_board[row*8 + col] = 2
-    return numpy_board
+                white_bitboard |= 1 << index
+    return black_bitboard, white_bitboard
 
-def is_valid_move(board, current_player, index):
-    if board[index] != 0:
-        return False
+def find_legal_moves(game_state):
+    not_left_side = 0xFEFEFEFEFEFEFEFE
+    not_right_side = 0x7F7F7F7F7F7F7F7F
+    legal_moves_bitboard = 0
+    player_bitboard = game_state.black_bitboard if game_state.current_player == 1 \
+        else game_state.white_bitboard
+    opponent_bitboard = game_state.black_bitboard if game_state.current_player == 2 \
+        else game_state.white_bitboard
+
+    def up_left_finder():
+        legal_moves_bitboard = 0
+        checker = (1 << 64) - 1
+        # Get the empty spaces
+        checker ^= player_bitboard | opponent_bitboard
+
+        # Get all empty spaces with opponent disc up and left
+        # Also make sure discs aren't wrapped around for either player's board
+        opponent_bitboard_shifted = not_left_side & (opponent_bitboard << 9)
+        player_bitboard_shifted = not_left_side & (player_bitboard << 9)
+        checker &= opponent_bitboard_shifted
+        while checker:
+            # Get some new legal moves
+            player_bitboard_shifted = not_left_side & (player_bitboard_shifted << 9)
+            legal_moves_bitboard |= checker & (player_bitboard_shifted)
+            # Get all empty spaces with a number of opponet discs up and left
+            opponent_bitboard_shifted = not_left_side & (opponent_bitboard_shifted << 9)
+            checker &= (opponent_bitboard_shifted)
+        return legal_moves_bitboard
+
+    def up_finder():
+        legal_moves_bitboard = 0
+        checker = (1 << 64) - 1
+        checker ^= player_bitboard | opponent_bitboard
+        opponent_bitboard_shifted = opponent_bitboard << 8
+        player_bitboard_shifted = player_bitboard << 8
+        checker &= opponent_bitboard_shifted
+        while checker:
+            player_bitboard_shifted <<= 8
+            legal_moves_bitboard |= checker & player_bitboard_shifted
+            opponent_bitboard_shifted <<= 8
+            checker &= (opponent_bitboard_shifted)
+        return legal_moves_bitboard
+
+    def up_right_finder():
+        legal_moves_bitboard = 0
+        checker = (1 << 64) - 1
+        checker ^= player_bitboard | opponent_bitboard
+        opponent_bitboard_shifted = not_right_side & (opponent_bitboard << 7)
+        player_bitboard_shifted = not_right_side & (player_bitboard << 7)
+        checker &= opponent_bitboard_shifted
+        while checker:
+            player_bitboard_shifted = not_right_side & (player_bitboard_shifted << 7)
+            legal_moves_bitboard |= checker & (player_bitboard_shifted)
+            opponent_bitboard_shifted = not_right_side & (opponent_bitboard_shifted << 7)
+            checker &= (opponent_bitboard_shifted)
+        return legal_moves_bitboard
+
+    def left_finder():
+        legal_moves_bitboard = 0
+        checker = (1 << 64) - 1
+        checker ^= player_bitboard | opponent_bitboard
+        opponent_bitboard_shifted = not_left_side & (opponent_bitboard << 1)
+        player_bitboard_shifted = not_left_side & (player_bitboard << 1)
+        checker &= opponent_bitboard_shifted
+        while checker:
+            player_bitboard_shifted = not_left_side & (player_bitboard_shifted << 1)
+            legal_moves_bitboard |= checker & (player_bitboard_shifted)
+            opponent_bitboard_shifted = not_left_side & (opponent_bitboard_shifted << 1)
+            checker &= (opponent_bitboard_shifted)
+        return legal_moves_bitboard
+
+    def right_finder():
+        legal_moves_bitboard = 0
+        checker = (1 << 64) - 1
+        checker ^= player_bitboard | opponent_bitboard
+        opponent_bitboard_shifted = not_right_side & (opponent_bitboard >> 1)
+        player_bitboard_shifted = not_right_side & (player_bitboard >> 1)
+        checker &= opponent_bitboard_shifted
+        while checker:
+            player_bitboard_shifted = not_right_side & (player_bitboard_shifted >> 1)
+            legal_moves_bitboard |= checker & (player_bitboard_shifted)
+            opponent_bitboard_shifted = not_right_side & (opponent_bitboard_shifted >> 1)
+            checker &= (opponent_bitboard_shifted)
+        return legal_moves_bitboard
+
+    def down_left_finder():
+        legal_moves_bitboard = 0
+        checker = (1 << 64) - 1
+        checker ^= player_bitboard | opponent_bitboard
+        opponent_bitboard_shifted = not_left_side & (opponent_bitboard >> 7)
+        player_bitboard_shifted = not_left_side & (player_bitboard >> 7)
+        checker &= opponent_bitboard_shifted
+        while checker:
+            player_bitboard_shifted = not_left_side & (player_bitboard_shifted >> 7)
+            legal_moves_bitboard |= checker & (player_bitboard_shifted)
+            opponent_bitboard_shifted = not_left_side & (opponent_bitboard_shifted >> 7)
+            checker &= (opponent_bitboard_shifted)
+        return legal_moves_bitboard
+
+    def down_finder():
+        legal_moves_bitboard = 0
+        checker = (1 << 64) - 1
+        checker ^= player_bitboard | opponent_bitboard
+        opponent_bitboard_shifted = opponent_bitboard >> 8
+        player_bitboard_shifted = player_bitboard >> 8
+        checker &= opponent_bitboard_shifted
+        while checker:
+            player_bitboard_shifted >>= 8
+            legal_moves_bitboard |= checker & player_bitboard_shifted
+            opponent_bitboard_shifted >>= 8
+            checker &= (opponent_bitboard_shifted)
+        return legal_moves_bitboard
+
+    def down_right_finder():
+        legal_moves_bitboard = 0
+        checker = (1 << 64) - 1
+        checker ^= player_bitboard | opponent_bitboard
+        opponent_bitboard_shifted = not_right_side & (opponent_bitboard >> 9)
+        player_bitboard_shifted = not_right_side & (player_bitboard >> 9)
+        checker &= opponent_bitboard_shifted
+        while checker:
+            player_bitboard_shifted = not_right_side & (player_bitboard_shifted >> 9)
+            legal_moves_bitboard |= checker & (player_bitboard_shifted)
+            opponent_bitboard_shifted = not_right_side & (opponent_bitboard_shifted >> 9)
+            checker &= (opponent_bitboard_shifted)
+        return legal_moves_bitboard
+
+    legal_moves_bitboard |= up_left_finder()
+    legal_moves_bitboard |= up_finder()
+    legal_moves_bitboard |= up_right_finder()
+    legal_moves_bitboard |= left_finder()
+    legal_moves_bitboard |= right_finder()
+    legal_moves_bitboard |= down_left_finder()
+    legal_moves_bitboard |= down_finder()
+    legal_moves_bitboard |= down_right_finder()
+    return legal_moves_bitboard
+
+def handle_legal_move(game_state, move_bitboard):
+    # Add the disc placed to the correct colour's board
+    if game_state.current_player == 1:
+        game_state.black_bitboard |= move_bitboard
+    else:
+        game_state.white_bitboard |= move_bitboard
+
+    game_state = flip_discs(game_state, move_bitboard)
+    game_state.current_player = 1 if game_state.current_player == 2 else 2
+    return game_state
+
+def flip_discs(game_state, move_bitboard):
+    not_left_side = 0xFEFEFEFEFEFEFEFE
+    not_right_side = 0x7F7F7F7F7F7F7F7F
+    player_bitboard = game_state.black_bitboard if game_state.current_player == 1 \
+        else game_state.white_bitboard
+    opponent_bitboard = game_state.black_bitboard if game_state.current_player == 2 \
+        else game_state.white_bitboard
     
-    directions = [-9, -8, -7, # top left to bottom right
-                  -1,      1,
-                   7,  8,  9]
-    for direction in directions:
-        new_index = index + direction
-        found_opponent_piece = False
-        while 0 <= new_index < 64:
-            if board[new_index] == 0:
-                break
-            if board[new_index] != current_player:
-                found_opponent_piece = True
-                new_index += direction
-                continue
-            if found_opponent_piece: 
-                # Must have also met a disc of current player
-                return True
+    def flip_up_left(player_bitboard, opponent_bitboard):
+        discs_to_flip = 0
+        index = move_bitboard >> 9
+        while opponent_bitboard & index & not_right_side:
+            discs_to_flip |= index
+            index >>= 9
+        # Place on player bitboard and delete disc on opponent bitboard
+        if player_bitboard & index & not_right_side:
+            player_bitboard |= discs_to_flip
+            opponent_bitboard &= ~discs_to_flip
+        return player_bitboard, opponent_bitboard
+
+    def flip_up(player_bitboard, opponent_bitboard):
+        discs_to_flip = 0
+        index = move_bitboard >> 8
+        while opponent_bitboard & index:
+            discs_to_flip |= index
+            index >>= 8
+        if player_bitboard & index:
+            player_bitboard |= discs_to_flip
+            opponent_bitboard &= ~discs_to_flip
+        return player_bitboard, opponent_bitboard
+    
+    def flip_up_right(player_bitboard, opponent_bitboard):
+        discs_to_flip = 0
+        index = move_bitboard >> 7
+        while opponent_bitboard & index & not_left_side:
+            discs_to_flip |= index
+            index >>= 7
+        if player_bitboard & index & not_left_side:
+            player_bitboard |= discs_to_flip
+            opponent_bitboard &= ~discs_to_flip
+        return player_bitboard, opponent_bitboard
+    
+    def flip_left(player_bitboard, opponent_bitboard):
+        discs_to_flip = 0
+        index = move_bitboard >> 1
+        while opponent_bitboard & index & not_right_side:
+            discs_to_flip |= index
+            index >>= 1
+        if player_bitboard & index & not_right_side:
+            player_bitboard |= discs_to_flip
+            opponent_bitboard &= ~discs_to_flip
+        return player_bitboard, opponent_bitboard
+
+    def flip_right(player_bitboard, opponent_bitboard):
+        discs_to_flip = 0
+        index = move_bitboard << 1
+        while opponent_bitboard & index & not_left_side:
+            discs_to_flip |= index
+            index <<= 1
+        if player_bitboard & index & not_left_side:
+            player_bitboard |= discs_to_flip
+            opponent_bitboard &= ~discs_to_flip
+        return player_bitboard, opponent_bitboard
+
+    def flip_down_left(player_bitboard, opponent_bitboard):
+        discs_to_flip = 0
+        index = move_bitboard << 7
+        while opponent_bitboard & index & not_right_side:
+            discs_to_flip |= index
+            index <<= 7
+        if player_bitboard & index & not_right_side:
+            player_bitboard |= discs_to_flip
+            opponent_bitboard &= ~discs_to_flip
+        return player_bitboard, opponent_bitboard
+
+    def flip_down(player_bitboard, opponent_bitboard):
+        discs_to_flip = 0
+        index = move_bitboard << 8
+        while opponent_bitboard & index:
+            discs_to_flip |= index
+            index <<= 8
+        if player_bitboard & index:
+            player_bitboard |= discs_to_flip
+            opponent_bitboard &= ~discs_to_flip
+        return player_bitboard, opponent_bitboard
+
+    def flip_down_right(player_bitboard, opponent_bitboard):
+        discs_to_flip = 0
+        index = move_bitboard << 9
+        while opponent_bitboard & index & not_left_side:
+            discs_to_flip |= index
+            index <<= 9
+        if player_bitboard & index & not_left_side:
+            player_bitboard |= discs_to_flip
+            opponent_bitboard &= ~discs_to_flip
+        return player_bitboard, opponent_bitboard
+    
+    player_bitboard, opponent_bitboard = flip_up_left(player_bitboard, opponent_bitboard)
+    player_bitboard, opponent_bitboard = flip_up(player_bitboard, opponent_bitboard)
+    player_bitboard, opponent_bitboard = flip_up_right(player_bitboard, opponent_bitboard)
+    player_bitboard, opponent_bitboard = flip_left(player_bitboard, opponent_bitboard)
+    player_bitboard, opponent_bitboard = flip_right(player_bitboard, opponent_bitboard)
+    player_bitboard, opponent_bitboard = flip_down_left(player_bitboard, opponent_bitboard)
+    player_bitboard, opponent_bitboard = flip_down(player_bitboard, opponent_bitboard)
+    player_bitboard, opponent_bitboard = flip_down_right(player_bitboard, opponent_bitboard)
+
+    game_state.black_bitboard = player_bitboard if game_state.current_player == 1\
+        else opponent_bitboard
+    game_state.white_bitboard = player_bitboard if game_state.current_player == 2\
+        else opponent_bitboard
+    return game_state
+
+def print_bitboard(bitboard):
+    # Useful for debugging
+    for row in range(8):
+        row_string = ""
+        for col in range(8):
+            if bitboard & (1 << row*8 + col):
+                row_string += "X "
             else:
-                # Have found disc of current player without 
-                # finding opponent piece
-                break
-
-def find_legal_moves(board, current_player):
-    legal_moves = []
-    for index in range(64):
-        if board[index] == 0 and is_valid_move(board, current_player, index):
-            legal_moves.append(index)
-    return legal_moves
-
-def handle_legal_move(board, current_player, move_index):
-    board[move_index] = current_player
-    flip_discs(board, current_player, move_index)
-    current_player = 1 if current_player == 2 else 2
-    return board, current_player
-
-def flip_discs(board, current_player, move_index):
-    directions = [-9, -8, -7, # top left to bottom right
-                  -1,      1,
-                   7,  8,  9]
-    for direction in directions:
-        discs_to_flip = []
-        new_index = move_index + direction
-        while 0 <= new_index < 64:
-            if board[new_index] == 0:
-                break
-            if board[new_index] != current_player:
-                discs_to_flip.append(new_index)
-                new_index += direction
-                continue
-            if board[new_index] == current_player:
-                for disc in discs_to_flip:
-                    board[disc] = current_player
-                break
+                row_string += ". "
+        print(row_string)

@@ -1,0 +1,219 @@
+def get_numpy_board(board):
+    # will have board s.t. 0 is empty 1 is black 2 is white
+    numpy_board = np.zeros(64, dtype = int)
+    for row in range(8):
+        for col in range(8):
+            if board[row][col] == 'black':
+                numpy_board[row*8 + col] = 1
+            elif board[row][col] == 'white':
+                numpy_board[row*8 + col] = 2
+    return numpy_board
+
+def find_legal_moves(board, current_player):
+    legal_moves = []
+    black_bitboard, white_bitboard = get_bitboards(board)
+    legal_moves = bitboard_find_legal_moves(black_bitboard, white_bitboard, current_player)
+    return legal_moves
+
+def is_valid_move(board, current_player, index):
+    directions = [[-1, -1], [-1, 0], [-1, 1],
+                  [0, -1],           [0, 1],
+                  [1, -1],  [1, 0],  [1, 1] ]
+    col = index % 8
+    row = index // 8
+    for direction in directions:
+        new_row = row + direction[0]
+        new_col = col + direction[1]
+        new_index = int(new_row*8 + new_col)
+        found_opponent_piece = False
+        while new_row < 8 and new_row >= 0 and new_col < 8 and new_col >= 0:
+            if board[new_index] == 0:
+                break
+            if board[new_index] != current_player:
+                found_opponent_piece = True
+                new_row = new_row + direction[0]
+                new_col = new_col + direction[1]
+                new_index = int(new_row*8 + new_col)
+                continue
+            if found_opponent_piece: 
+                # Must have also met a disc of current player
+                return True
+            else:
+                # Have found disc of current player without 
+                # finding opponent piece
+                break
+    return False
+
+def moves_from_bitboard(bitboard):
+    legal_moves = []
+    for i in range(64):
+        if bitboard & (1 << i):
+            legal_moves.append(i)
+        bitboard >> 1
+    return legal_moves
+
+def bitboard_is_valid_move(black_bitboard, white_bitboard, current_player, index):
+    not_left_side = 0xFEFEFEFEFEFEFEFE
+    not_right_side = 0x7F7F7F7F7F7F7F7F
+
+    index_copy = index
+    index_copy = 1 << index_copy # Gives bitboard with position of index 
+    # Use a copy to not mess with undoing move back in the alpha beta search
+
+    # Check if the position is already occupied
+    if (black_bitboard | white_bitboard) & index_copy:
+        return False
+    
+    player_bitboard = black_bitboard if current_player == 1 else white_bitboard
+    opponent_bitboard = black_bitboard if current_player == 2 else white_bitboard
+    
+    def up_left_finder():
+        found_opponent_piece = False
+        new_index = index_copy >> 9 
+        # Shifts one space to the left and one space up using right shift operator
+        # Idea is that if shifted to 0 (or above 64 for down_finder) get first 64
+        # bits of new_index as 0 so will escape while loop below
+        while opponent_bitboard & new_index & not_right_side:
+            # Idea of last & is that we have not wrapped around to right side yet
+            new_index = new_index >> 9
+            found_opponent_piece = True
+        if found_opponent_piece and player_bitboard & new_index & not_right_side:
+            # Second condition means it's not just empty space
+            return True
+        return False
+    
+    def up_finder():
+        found_opponent_piece = False
+        new_index = index_copy >> 8
+        while opponent_bitboard & new_index:
+            # If new index is 0 because off edge then while will break
+            new_index = new_index >> 8
+            found_opponent_piece = True
+        if found_opponent_piece and player_bitboard & new_index:
+            return True
+        return False
+    
+    def up_right_finder():
+        found_opponent_piece = False
+        new_index = index_copy >> 7
+        while opponent_bitboard & new_index & not_left_side:
+            new_index = new_index >> 7
+            found_opponent_piece = True
+        if found_opponent_piece and player_bitboard & new_index & not_left_side:
+            return True
+        return False
+    
+    def left_finder():
+        found_opponent_piece = False
+        new_index = index_copy >> 1
+        while opponent_bitboard & new_index & not_right_side:
+            new_index = new_index >> 1
+            found_opponent_piece = True
+        if found_opponent_piece and player_bitboard & new_index & not_right_side:
+            return True
+        return False
+    
+    def right_finder():
+        found_opponent_piece = False
+        new_index = index_copy << 1
+        while opponent_bitboard & new_index & not_left_side:
+            new_index = new_index << 1
+            found_opponent_piece = True
+        if found_opponent_piece and player_bitboard & new_index & not_left_side:
+            return True
+        return False
+    
+    def down_left_finder():
+        found_opponent_piece = False
+        new_index = index_copy << 7
+        while opponent_bitboard & new_index & not_right_side:
+            # If go below lower edge then get first 64 bits of extended
+            # integer will be 0 followed by the 1 somewhere
+            new_index = new_index << 7
+            found_opponent_piece = True
+        if found_opponent_piece and player_bitboard & new_index & not_right_side:
+            return True
+        return False
+    
+    def down_finder():
+        found_opponent_piece = False
+        new_index = index_copy << 8
+        while opponent_bitboard & new_index:
+            new_index = new_index << 8
+            found_opponent_piece = True
+        if found_opponent_piece and player_bitboard & new_index:
+            return True
+        return False
+    
+    def down_right_finder():
+        found_opponent_piece = False
+        new_index = index_copy << 9
+        while opponent_bitboard & new_index & not_right_side:
+            new_index = new_index << 9
+            found_opponent_piece = True
+        if found_opponent_piece and player_bitboard & new_index & not_right_side:
+            return True
+        return False
+
+    if up_left_finder() or up_finder() or up_right_finder() or left_finder() or right_finder() \
+        or down_left_finder() or down_finder() or down_right_finder():
+        return True
+    return False
+
+def flip_discs(board, current_player, move_index):
+    directions = [[-1, -1], [-1, 0], [-1, 1],
+                  [0, -1],           [0, 1],
+                  [1, -1],  [1, 0],  [1, 1] ]
+    col = move_index % 8
+    row = move_index // 8
+    for direction in directions:
+        discs_to_flip = []
+        new_row = row + direction[0]
+        new_col = col + direction[1]
+        new_index = int(new_row*8 + new_col)
+        while new_row < 8 and new_row >= 0 and new_col < 8 and new_col >= 0:
+            if board[new_index] == 0:
+                break
+            if board[new_index] != current_player:
+                discs_to_flip.append(new_index)
+                new_row = new_row + direction[0]
+                new_col = new_col + direction[1]
+                new_index = int(new_row*8 + new_col)
+                continue
+            if board[new_index] == current_player:
+                for disc in discs_to_flip:
+                    board[disc] = current_player
+                break
+    return board
+
+def minimax_evaluation(board, current_player, depth):
+    global number_of_nodes
+    number_of_nodes += 1
+    best_move = None
+    # Using this to test alpha_beta
+    if depth == 0:
+        # 2 turns passed means game is over (including situation where board is full)
+        eval = heuristic_evaluation(board)
+        return eval, ''
+    
+    legal_moves = find_legal_moves(board, current_player)
+    if current_player == 1:
+        max_eval = float('-inf')
+        for move in legal_moves:
+            board_copy = np.copy(board)
+            new_board, new_player = handle_legal_move(board_copy, current_player, move)
+            new_eval, _ = minimax_evaluation(new_board, new_player, depth - 1)
+            if new_eval > max_eval:
+                best_move = move
+                max_eval = new_eval
+        return max_eval, best_move
+    else:
+        min_eval = float('inf')
+        for move in legal_moves:
+            board_copy = np.copy(board)
+            new_board, new_player = handle_legal_move(board_copy, current_player, move)
+            new_eval, _ = minimax_evaluation(new_board, new_player, depth - 1)
+            if new_eval < min_eval:
+                best_move = move
+                min_eval = new_eval
+        return min_eval, best_move
