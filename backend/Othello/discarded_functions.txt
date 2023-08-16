@@ -217,3 +217,117 @@ def minimax_evaluation(board, current_player, depth):
                 best_move = move
                 min_eval = new_eval
         return min_eval, best_move
+
+def alpha_beta_move(game_state, depth, alpha, beta):
+    # This function just returns the move 
+    global number_of_nodes
+    number_of_nodes += 1
+    
+    legal_moves = find_legal_moves(game_state)
+    best_move = legal_moves & -legal_moves # Extacts least significant bit
+    # ^ Don't have best_move = None to avoid error if position is lost
+    # since in that case code below would not return a move
+    if game_state.current_player == 1:
+        # In this case, we want to maximise the evaluation
+        eval = float('-inf')
+        while legal_moves:
+            move_bitboard = legal_moves & -legal_moves # Extacts least significant bit 
+            legal_moves ^= move_bitboard # Gets rid of move just extracted using XOR
+            # Make a copy since class instance is mutable
+            new_game_state = OthelloGameState(game_state.black_bitboard, \
+                        game_state.white_bitboard, game_state.current_player)
+            new_game_state = handle_legal_move(new_game_state, move_bitboard)
+            eval_of_current_move = alpha_beta_evaluation\
+                    (new_game_state, depth - 1, alpha, beta)
+            if eval_of_current_move > eval:
+                best_move = move_bitboard
+                eval = eval_of_current_move
+            alpha = max(alpha, eval)
+            # Update alpha. Black is guaruteed at least this evaluation.
+            # Then this can be used in next iteration of loops as new alpha
+            if alpha >= beta:
+# To explain alpha > beta: For the very starting position we know black is guarunteed
+# a score of at least alpha while white is guarunteed less than beta. So cannot have
+# alpha > beta
+# eval >= beta should give same result. Explanation: This means in response to the 
+# white move black has a move with a higher eval than white's current best move (beta)
+                break
+        return eval, best_move
+
+    else:
+        eval = float('inf')
+        while legal_moves:
+            move_bitboard = legal_moves & -legal_moves # Extacts least significant bit
+            legal_moves ^= move_bitboard # Gets rid of move just extracted
+            # Make a copy since class instance is mutable
+            new_game_state = OthelloGameState(game_state.black_bitboard, \
+                        game_state.white_bitboard, game_state.current_player)
+            new_game_state = handle_legal_move(new_game_state, move_bitboard)
+            eval_of_current_move = alpha_beta_evaluation\
+                    (new_game_state, depth - 1, alpha, beta)
+            if eval_of_current_move < eval:
+                best_move = move_bitboard
+                eval = eval_of_current_move
+            beta = min(beta, eval)
+            if beta <= alpha:
+                break
+        return eval, best_move
+
+def alpha_beta_evaluation(game_state, depth, alpha, beta):
+    # This function just returns the eval
+    global number_of_nodes
+    number_of_nodes += 1
+    if depth == 0:
+        eval = heuristic_evaluation(game_state)
+        return eval
+
+    legal_moves = find_legal_moves(game_state)
+    if not legal_moves: # Deal with passing turns here
+        game_state.current_player = 1 if game_state.current_player == 2 else 2
+        legal_moves = find_legal_moves(game_state)
+        if not legal_moves: # In this case, game is over
+            # Number black discs minus no white discs
+            black_white_difference = number_of_bits_set(game_state.black_bitboard) \
+                - number_of_bits_set(game_state.white_bitboard)
+            if black_white_difference > 0:
+                return float('inf')
+            elif black_white_difference < 0:
+                return float('-inf')
+            else:
+                return 0
+        # If there are legal moves then the function will continue executing
+        # current_player already swapped above
+    
+    if game_state.current_player == 1:
+        # In this case, we want to maximise the evaluation
+        eval = float('-inf')
+        while legal_moves:
+            move_bitboard = legal_moves & -legal_moves # Extacts least significant bit 
+            legal_moves ^= move_bitboard # Gets rid of move just extracted
+            # Make a copy since class instance is mutable
+            new_game_state = OthelloGameState(game_state.black_bitboard, \
+                        game_state.white_bitboard, game_state.current_player)
+            new_game_state = handle_legal_move(new_game_state, move_bitboard)
+            eval = max(eval, alpha_beta_evaluation\
+                (new_game_state, depth - 1, alpha, beta))
+            alpha = max(alpha, eval)
+            if alpha >= beta:
+                break
+        return eval
+    
+    else:
+        eval = float('inf')
+        while legal_moves:
+            move_bitboard = legal_moves & -legal_moves # Extacts least significant bit 
+            legal_moves ^= move_bitboard # Gets rid of move just extracted
+            # Make a copy since class instance is mutable
+            new_game_state = OthelloGameState(game_state.black_bitboard, \
+                        game_state.white_bitboard, game_state.current_player)
+            new_game_state = handle_legal_move(new_game_state, move_bitboard)
+            eval = min(eval, alpha_beta_evaluation\
+                (new_game_state, depth - 1, alpha, beta))
+            beta = min(beta, eval)
+            if alpha >= beta:
+                break
+        return eval
+

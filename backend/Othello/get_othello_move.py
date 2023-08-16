@@ -20,17 +20,14 @@ def get_move():
         # Generate a move
         global number_of_nodes
         number_of_nodes = 0
-        depth = 7
+        max_depth = 7
         start_time = time.time()
-        final_eval, move = alpha_beta_move(game_state, depth, float('-inf'), float('inf'))
-        # cProfile.runctx("alpha_beta_move(game_state, depth, float('-inf'), float('inf'))", globals(), locals())
+        move, evaluation = iterative_deepening_search(game_state, max_depth)
+        cProfile.runctx("iterative_deepening_search(game_state, max_depth)", locals(), globals())
         print('Time = ', time.time() - start_time)
         print('Number of nodes = ', number_of_nodes)
-        print('Evaluation = ', final_eval, '\n')
-        move = move.bit_length() - 1 # Gets move bit length
-        col = move % 8
-        row = move // 8
-        move = [row, col]
+        print('Evaluation = ', evaluation, '\n')
+        move = get_move_index(move)
         return jsonify({"move": move})
     else:
         return jsonify({"error": "Invalid request method"})    
@@ -86,7 +83,6 @@ def heuristic_evaluation(game_state):
 
 def number_of_bits_set(bitboard):
     # Don't need to worry about having to copy bitboard since it is immuatble
-    # Below makes sure 
     no_bits = 0
     while bitboard:
         no_bits += 1
@@ -95,92 +91,32 @@ def number_of_bits_set(bitboard):
         # zeros to the right of that into ones
     return no_bits
 
-def alpha_beta_move(game_state, depth, alpha, beta):
-    # This function just returns the move 
-    global number_of_nodes
-    number_of_nodes += 1
-    
-    legal_moves = find_legal_moves(game_state)
-    best_move = legal_moves & -legal_moves # Extacts least significant bit
-    # ^ Don't have best_move = None to avoid error if position is lost
-    # since in that case code below would not return a move
-    if game_state.current_player == 1:
-        # In this case, we want to maximise the evaluation
-        eval = float('-inf')
-        while legal_moves:
-            move_bitboard = legal_moves & -legal_moves # Extacts least significant bit 
-            legal_moves ^= move_bitboard # Gets rid of move just extracted using XOR
-            # Make a copy since class instance is mutable
-            new_game_state = OthelloGameState(game_state.black_bitboard, \
-                        game_state.white_bitboard, game_state.current_player)
-            new_game_state = handle_legal_move(new_game_state, move_bitboard)
-            eval_of_current_move = alpha_beta_evaluation\
-                    (new_game_state, depth - 1, alpha, beta)
-            if eval_of_current_move > eval:
-                best_move = move_bitboard
-                eval = eval_of_current_move
-            alpha = max(alpha, eval)
-            # Update alpha. Black is guaruteed at least this evaluation.
-            # Then this can be used in next iteration of loops as new alpha
-            if alpha >= beta:
-# To explain alpha > beta: For the very starting position we know black is guarunteed
-# a score of at least alpha while white is guarunteed less than beta. So cannot have
-# alpha > beta
-# eval >= beta should give same result. Explanation: This means in response to the 
-# white move black has a move with a higher eval than white's current best move (beta)
-                break
-        return eval, best_move
-        for move in legal_moves:
-            new_board = board.copy()
-            new_board, new_player = handle_legal_move(new_board, current_player, move)
-            eval_of_current_move = alpha_beta_evaluation\
-                (new_board, new_player, depth - 1, alpha, beta)
-            if eval_of_current_move > eval:
-                best_move = move
-                eval = eval_of_current_move
-            alpha = max(alpha, eval)
-            if alpha >= beta:
-                break
-        return eval, best_move
-    else:
-        eval = float('inf')
-        while legal_moves:
-            move_bitboard = legal_moves & -legal_moves # Extacts least significant bit
-            legal_moves ^= move_bitboard # Gets rid of move just extracted
-            # Make a copy since class instance is mutable
-            new_game_state = OthelloGameState(game_state.black_bitboard, \
-                        game_state.white_bitboard, game_state.current_player)
-            new_game_state = handle_legal_move(new_game_state, move_bitboard)
-            eval_of_current_move = alpha_beta_evaluation\
-                    (new_game_state, depth - 1, alpha, beta)
-            if eval_of_current_move < eval:
-                best_move = move_bitboard
-                eval = eval_of_current_move
-            beta = min(beta, eval)
-            if beta <= alpha:
-                break
-        return eval, best_move
-        for move in legal_moves:
-            new_board = board.copy()
-            new_board, new_player = handle_legal_move(new_board, current_player, move)
-            eval_of_current_move = alpha_beta_evaluation\
-                (new_board, new_player, depth - 1, alpha, beta)
-            if eval_of_current_move < eval:
-                best_move = move
-                eval = eval_of_current_move
-            beta = min(beta, eval)
-            if beta <= alpha:
-                break
-        return eval, best_move
+def iterative_deepening_search(game_state, max_depth):
+    # Key idea: best_moves and hash_moves are mutable and so every
+    # search_state instance is refering to the same dictionaries
+    search_state = OthelloSearchState({}, {}, 1, max_depth)
+    for depth in range(1, max_depth + 1):
+        game_state_copy = OthelloGameState(game_state.black_bitboard, \
+                game_state.white_bitboard, game_state.current_player)
+        # Need to reset initial alpha and beta of search state for new search
+        search_state.depth = depth
+        search_state.alpha = float('-inf')
+        search_state.beta = float('inf')
+        final_evaluation = alpha_beta_search(game_state_copy, search_state)
+        # alpha_beta_search will also update best_moves and hash_moves
+    game_state_key = (game_state.black_bitboard, game_state.white_bitboard, \
+                        game_state.current_player)
+    best_move = search_state.best_moves.get(game_state_key)
+    return best_move, final_evaluation
 
-def alpha_beta_evaluation(game_state, depth, alpha, beta):
-    # This function just returns the eval
+def alpha_beta_search(game_state, search_state):
+    # Iterate this method but also recursively use
     global number_of_nodes
     number_of_nodes += 1
-    if depth == 0:
+    if search_state.depth == 0:
         eval = heuristic_evaluation(game_state)
         return eval
-
+    
     legal_moves = find_legal_moves(game_state)
     if not legal_moves: # Deal with passing turns here
         game_state.current_player = 1 if game_state.current_player == 2 else 2
@@ -196,53 +132,110 @@ def alpha_beta_evaluation(game_state, depth, alpha, beta):
             else:
                 return 0
         # If there are legal moves then the function will continue executing
-        # current_player already swapped above
+        # current_player already swapped above  
+    
+    best_move = legal_moves & -legal_moves # Extacts least significant bit
+    # Avoid error if position is lost since in that case code below would not return a move
+
+    legal_moves_in_order = order_legal_moves(legal_moves, game_state, search_state)
+    # print([get_move_index(move) for move in legal_moves_in_order])
+
     if game_state.current_player == 1:
-        # In this case, we want to maximise the evaluation
         eval = float('-inf')
-        while legal_moves:
-            move_bitboard = legal_moves & -legal_moves # Extacts least significant bit 
-            legal_moves ^= move_bitboard # Gets rid of move just extracted
-            # Make a copy since class instance is mutable
+        for move in legal_moves_in_order:
             new_game_state = OthelloGameState(game_state.black_bitboard, \
                         game_state.white_bitboard, game_state.current_player)
-            new_game_state = handle_legal_move(new_game_state, move_bitboard)
-            eval = max(eval, alpha_beta_evaluation\
-                (new_game_state, depth - 1, alpha, beta))
-            alpha = max(alpha, eval)
-            if alpha >= beta:
+            new_game_state = handle_legal_move(new_game_state, move)
+            new_search_state = OthelloSearchState(search_state.best_moves, search_state.hash_moves,\
+                    search_state.depth - 1, search_state.max_depth, search_state.alpha, search_state.beta)
+            eval_of_current_move = alpha_beta_search(new_game_state, new_search_state)
+            if eval_of_current_move > eval:
+                best_move = move
+                eval = eval_of_current_move
+            search_state.alpha = max(search_state.alpha, eval)
+            # print('current_player = 1. Alpha = ', search_state.alpha, 'Beta', search_state.beta)
+            if search_state.alpha >= search_state.beta:
+                add_best_move(game_state, search_state.best_moves, best_move)
+                # best_move is also the move which caused the cutoff so is considered for hash_moves
+                # Remember best_moves may change so if best_move is added to hash_moves we're not
+                # just creating a copy of best_moves
+                consider_hash_move(game_state, search_state, best_move)
+                # Standard beta cutoff condition where alpha is guarunteed max eval and beta is
+                # guarunteed min eval at any given node
                 break
+        add_best_move(game_state, search_state.best_moves, best_move)
         return eval
-        for move in legal_moves:
-            new_board = board.copy()
-            new_board, new_player = handle_legal_move(new_board, current_player, move)
-            eval = max(eval, alpha_beta_evaluation\
-                (new_board, new_player, depth - 1, alpha, beta))
-            alpha = max(alpha, eval)
-            if alpha >= beta:
-                break
-        return eval
+
     else:
         eval = float('inf')
-        while legal_moves:
-            move_bitboard = legal_moves & -legal_moves # Extacts least significant bit 
-            legal_moves ^= move_bitboard # Gets rid of move just extracted
-            # Make a copy since class instance is mutable
+        for move in legal_moves_in_order:
             new_game_state = OthelloGameState(game_state.black_bitboard, \
                         game_state.white_bitboard, game_state.current_player)
-            new_game_state = handle_legal_move(new_game_state, move_bitboard)
-            eval = min(eval, alpha_beta_evaluation\
-                (new_game_state, depth - 1, alpha, beta))
-            beta = min(beta, eval)
-            if alpha >= beta:
+            new_game_state = handle_legal_move(new_game_state, move)
+            new_search_state = OthelloSearchState(search_state.best_moves, search_state.hash_moves,\
+                    search_state.depth - 1, search_state.max_depth, search_state.alpha, search_state.beta)
+            eval_of_current_move = alpha_beta_search(new_game_state, new_search_state)
+            if eval_of_current_move < eval:
+                best_move = move
+                eval = eval_of_current_move
+            search_state.beta = min(search_state.beta, eval)
+            # print('current_player = 2. Alpha = ', search_state.alpha, 'Beta', search_state.beta)
+            if search_state.alpha >= search_state.beta:
+                add_best_move(game_state, search_state.best_moves, best_move)
+                consider_hash_move(game_state, search_state, best_move)
                 break
+        add_best_move(game_state, search_state.best_moves, best_move)
         return eval
-        for move in legal_moves:
-            new_board = board.copy()
-            new_board, new_player = handle_legal_move(new_board, current_player, move)
-            eval = min(eval, alpha_beta_evaluation\
-                (new_board, new_player, depth - 1, alpha, beta))
-            beta = min(beta, eval)
-            if beta <= alpha:
-                break
-        return eval
+
+def order_legal_moves(legal_moves_bitboard, game_state, search_state):
+    legal_moves = []
+    game_state_key = (game_state.black_bitboard, game_state.white_bitboard,\
+                        game_state.current_player)
+    
+    best_move = search_state.best_moves.get(game_state_key, 0)
+    if best_move:
+        legal_moves += [best_move]
+    
+    hash_moves_list = search_state.hash_moves.get(game_state_key, [])
+    for hash_move in hash_moves_list:
+        if not hash_move & best_move:
+            legal_moves.insert(1, hash_move)
+
+    while legal_moves_bitboard:
+        move_bitboard = legal_moves_bitboard & -legal_moves_bitboard
+        legal_moves_bitboard ^= move_bitboard # Delete move off board with XOR
+        if move_bitboard & best_move:
+            # This move has already been added to the list
+            continue
+        allow_append = True
+        for hash_move in hash_moves_list:
+            if move_bitboard & hash_move:
+                allow_append = False
+                continue
+        if allow_append:
+            legal_moves.append(move_bitboard)
+    
+    return legal_moves
+
+def add_best_move(game_state, best_moves_dict, best_move):
+    # Use tuple for key since it is immuatable
+    game_state_key = (game_state.black_bitboard, game_state.white_bitboard,\
+                        game_state.current_player)
+    best_moves_dict[game_state_key] = best_move
+
+def consider_hash_move(game_state, search_state, move_considered):
+    # Will add hash move depending on if cutoff exceeds threshold
+    threshold = 3
+    game_state_key = (game_state.black_bitboard, game_state.white_bitboard,\
+                        game_state.current_player)
+    number_of_layers_cutoff = search_state.max_depth - search_state.depth - 1
+    if number_of_layers_cutoff >= threshold:
+        hash_moves_list = search_state.hash_moves.get(game_state_key, [])
+        for hash_move in hash_moves_list:
+            if hash_move & move_considered:
+                # Don't want to add duplicate moves
+                return
+        if hash_moves_list:
+            hash_moves_list += [move_considered]
+        else:
+            search_state.hash_moves[game_state_key] = [move_considered]

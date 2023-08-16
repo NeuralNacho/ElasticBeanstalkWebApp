@@ -1,9 +1,27 @@
+import threading
+import multiprocessing
+
 class OthelloGameState:
     def __init__(self, black_bitboard, white_bitboard, current_player):
         # Three game state variables:
         self.black_bitboard = black_bitboard
         self.white_bitboard = white_bitboard
         self.current_player = current_player
+
+class OthelloSearchState:
+    # Class used to store information about the search for each node
+    # in the alpha beta search
+    def __init__(self, best_moves, hash_moves, depth, max_depth, alpha = float('-inf'), \
+                 beta = float('inf'), node_count = 0):
+        self.best_moves = best_moves
+        self.hash_moves = hash_moves
+        self.depth = depth
+        self.alpha = alpha
+        self.beta = beta
+        self.max_depth = max_depth
+        self.node_count = node_count
+        # Node count is how many nodes we've checked before this one.
+        # Will be used to display the number of nodes checked
 
 def get_game_state(board, current_player):
     black_bitboard, white_bitboard = get_bitboards(board)
@@ -31,7 +49,7 @@ def find_legal_moves(game_state):
     opponent_bitboard = game_state.black_bitboard if game_state.current_player == 2 \
         else game_state.white_bitboard
 
-    def up_left_finder():
+    def up_left_finder(queue):
         legal_moves_bitboard = 0
         checker = (1 << 64) - 1
         # Get the empty spaces
@@ -49,9 +67,10 @@ def find_legal_moves(game_state):
             # Get all empty spaces with a number of opponet discs up and left
             opponent_bitboard_shifted = not_left_side & (opponent_bitboard_shifted << 9)
             checker &= (opponent_bitboard_shifted)
-        return legal_moves_bitboard
+        queue.put(legal_moves_bitboard)
+        # return legal_moves_bitboard
 
-    def up_finder():
+    def up_finder(queue):
         legal_moves_bitboard = 0
         checker = (1 << 64) - 1
         checker ^= player_bitboard | opponent_bitboard
@@ -63,9 +82,10 @@ def find_legal_moves(game_state):
             legal_moves_bitboard |= checker & player_bitboard_shifted
             opponent_bitboard_shifted <<= 8
             checker &= (opponent_bitboard_shifted)
-        return legal_moves_bitboard
+        queue.put(legal_moves_bitboard)
+        # return legal_moves_bitboard
 
-    def up_right_finder():
+    def up_right_finder(queue):
         legal_moves_bitboard = 0
         checker = (1 << 64) - 1
         checker ^= player_bitboard | opponent_bitboard
@@ -77,9 +97,10 @@ def find_legal_moves(game_state):
             legal_moves_bitboard |= checker & (player_bitboard_shifted)
             opponent_bitboard_shifted = not_right_side & (opponent_bitboard_shifted << 7)
             checker &= (opponent_bitboard_shifted)
-        return legal_moves_bitboard
+        queue.put(legal_moves_bitboard)
+        # return legal_moves_bitboard
 
-    def left_finder():
+    def left_finder(queue):
         legal_moves_bitboard = 0
         checker = (1 << 64) - 1
         checker ^= player_bitboard | opponent_bitboard
@@ -91,9 +112,10 @@ def find_legal_moves(game_state):
             legal_moves_bitboard |= checker & (player_bitboard_shifted)
             opponent_bitboard_shifted = not_left_side & (opponent_bitboard_shifted << 1)
             checker &= (opponent_bitboard_shifted)
-        return legal_moves_bitboard
+        queue.put(legal_moves_bitboard)
+        # return legal_moves_bitboard
 
-    def right_finder():
+    def right_finder(queue):
         legal_moves_bitboard = 0
         checker = (1 << 64) - 1
         checker ^= player_bitboard | opponent_bitboard
@@ -105,9 +127,10 @@ def find_legal_moves(game_state):
             legal_moves_bitboard |= checker & (player_bitboard_shifted)
             opponent_bitboard_shifted = not_right_side & (opponent_bitboard_shifted >> 1)
             checker &= (opponent_bitboard_shifted)
-        return legal_moves_bitboard
+        queue.put(legal_moves_bitboard)
+        # return legal_moves_bitboard
 
-    def down_left_finder():
+    def down_left_finder(queue):
         legal_moves_bitboard = 0
         checker = (1 << 64) - 1
         checker ^= player_bitboard | opponent_bitboard
@@ -119,9 +142,10 @@ def find_legal_moves(game_state):
             legal_moves_bitboard |= checker & (player_bitboard_shifted)
             opponent_bitboard_shifted = not_left_side & (opponent_bitboard_shifted >> 7)
             checker &= (opponent_bitboard_shifted)
-        return legal_moves_bitboard
+        queue.put(legal_moves_bitboard)
+        # return legal_moves_bitboard
 
-    def down_finder():
+    def down_finder(queue):
         legal_moves_bitboard = 0
         checker = (1 << 64) - 1
         checker ^= player_bitboard | opponent_bitboard
@@ -133,9 +157,10 @@ def find_legal_moves(game_state):
             legal_moves_bitboard |= checker & player_bitboard_shifted
             opponent_bitboard_shifted >>= 8
             checker &= (opponent_bitboard_shifted)
-        return legal_moves_bitboard
+        queue.put(legal_moves_bitboard)
+        # return legal_moves_bitboard
 
-    def down_right_finder():
+    def down_right_finder(queue):
         legal_moves_bitboard = 0
         checker = (1 << 64) - 1
         checker ^= player_bitboard | opponent_bitboard
@@ -147,16 +172,55 @@ def find_legal_moves(game_state):
             legal_moves_bitboard |= checker & (player_bitboard_shifted)
             opponent_bitboard_shifted = not_right_side & (opponent_bitboard_shifted >> 9)
             checker &= (opponent_bitboard_shifted)
-        return legal_moves_bitboard
+        queue.put(legal_moves_bitboard)
+        # return legal_moves_bitboard
 
-    legal_moves_bitboard |= up_left_finder()
-    legal_moves_bitboard |= up_finder()
-    legal_moves_bitboard |= up_right_finder()
-    legal_moves_bitboard |= left_finder()
-    legal_moves_bitboard |= right_finder()
-    legal_moves_bitboard |= down_left_finder()
-    legal_moves_bitboard |= down_finder()
-    legal_moves_bitboard |= down_right_finder()
+    moves_queue = multiprocessing.Queue()
+    p1 = multiprocessing.Process(target = up_left_finder, args = (moves_queue,))
+    p2 = multiprocessing.Process(target = up_finder, args = (moves_queue,))
+    p3 = multiprocessing.Process(target = up_right_finder, args = (moves_queue,))
+    p4 = multiprocessing.Process(target = left_finder, args = (moves_queue,))
+
+    p1.start()
+    p2.start()
+    p3.start()
+    p4.start()
+    p1.join()
+    p2.join()
+    p3.join()
+    p4.join()
+
+    legal_moves_bitboard |= moves_queue.get()
+    legal_moves_bitboard |= moves_queue.get()
+    legal_moves_bitboard |= moves_queue.get()
+    legal_moves_bitboard |= moves_queue.get()
+
+    p1 = multiprocessing.Process(target = right_finder, args = (moves_queue,))
+    p2 = multiprocessing.Process(target = down_left_finder, args = (moves_queue,))
+    p3 = multiprocessing.Process(target = down_finder, args = (moves_queue,))
+    p4 = multiprocessing.Process(target = down_right_finder, args = (moves_queue,))
+
+    p1.start()
+    p2.start()
+    p3.start()
+    p4.start()
+    p1.join()
+    p2.join()
+    p3.join()
+    p4.join()
+
+    legal_moves_bitboard |= moves_queue.get()
+    legal_moves_bitboard |= moves_queue.get()
+    legal_moves_bitboard |= moves_queue.get()
+    legal_moves_bitboard |= moves_queue.get()
+    # legal_moves_bitboard |= up_left_finder()
+    # legal_moves_bitboard |= up_finder()
+    # legal_moves_bitboard |= up_right_finder()
+    # legal_moves_bitboard |= left_finder()
+    # legal_moves_bitboard |= right_finder()
+    # legal_moves_bitboard |= down_left_finder()
+    # legal_moves_bitboard |= down_finder()
+    # legal_moves_bitboard |= down_right_finder()
     return legal_moves_bitboard
 
 def handle_legal_move(game_state, move_bitboard):
@@ -281,6 +345,14 @@ def flip_discs(game_state, move_bitboard):
     game_state.white_bitboard = player_bitboard if game_state.current_player == 2\
         else opponent_bitboard
     return game_state
+
+def get_move_index(move):
+    # Function to go from move bitboard to row col index
+    move = move.bit_length() - 1 # Gets move bit length
+    col = move % 8
+    row = move // 8
+    move = [row, col]
+    return move
 
 def print_bitboard(bitboard):
     # Useful for debugging
