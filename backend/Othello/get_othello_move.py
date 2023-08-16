@@ -20,7 +20,7 @@ def get_move():
         # Generate a move
         global number_of_nodes
         number_of_nodes = 0
-        depth = 7
+        depth = 2
         start_time = time.time()
         final_eval, move = alpha_beta_move(game_state, depth, float('-inf'), float('inf'))
         # cProfile.runctx("alpha_beta_move(game_state, depth, float('-inf'), float('inf'))", globals(), locals())
