@@ -331,3 +331,20 @@ def alpha_beta_evaluation(game_state, depth, alpha, beta):
                 break
         return eval
 
+Multithreading in find_legal_moves:
+    threads = []
+    functions = [up_left_finder, up_finder, up_right_finder, left_finder,
+        right_finder, down_left_finder, down_finder, down_right_finder]
+    results = []
+    def worker(func):
+        result = func()
+        results.append(result)
+    for func in functions:
+        thread = threading.Thread(target = worker, args = (func, ))
+        threads.append(thread)
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    for result in results:
+        legal_moves_bitboard |= result
