@@ -192,22 +192,22 @@ def iterative_deepening_search(game_state, max_depth):
             break
 
     increased_depth = 0
-    while not time_up and max_depth + increased_depth < 20: 
-        # Increase depth if not much time has elapsed
-        # Second condition for at game end when don't want to loop excessively
-        increased_depth += 1
-        if time_taken < 0.25:
-            start_time = time.time()
-            game_state_copy = OthelloGameState(game_state.black_bitboard, \
-                game_state.white_bitboard, game_state.current_player)
-            search_state.depth = max_depth + increased_depth
-            search_state.alpha = float('-inf')
-            search_state.beta = float('inf')
-            final_evaluation = alpha_beta_search(game_state_copy, search_state)
-            time_taken += time.time() - start_time
-        else:
-            print('Max depth achieved 2', max_depth + increased_depth - 1)
-            break
+    # while not time_up and max_depth + increased_depth < 20: 
+    #     # Increase depth if not much time has elapsed
+    #     # Second condition for at game end when don't want to loop excessively
+    #     increased_depth += 1
+    #     if time_taken < 0.25:
+    #         start_time = time.time()
+    #         game_state_copy = OthelloGameState(game_state.black_bitboard, \
+    #             game_state.white_bitboard, game_state.current_player)
+    #         search_state.depth = max_depth + increased_depth
+    #         search_state.alpha = float('-inf')
+    #         search_state.beta = float('inf')
+    #         final_evaluation = alpha_beta_search(game_state_copy, search_state)
+    #         time_taken += time.time() - start_time
+    #     else:
+    #         print('Max depth achieved 2', max_depth + increased_depth - 1)
+    #         break
     game_state_key = (game_state.black_bitboard, game_state.white_bitboard, \
                         game_state.current_player)
     best_move = search_state.best_moves.get(game_state_key)
@@ -269,7 +269,7 @@ def alpha_beta_search(game_state, search_state):
                     search_state.hash_moves, search_state.depth - 1 - extra_depth_to_reduce, \
                     search_state.max_depth, search_state.alpha, search_state.beta)
             eval_of_current_move = alpha_beta_search(new_game_state, new_search_state)
-            if eval_of_current_move >= search_state.alpha and extra_depth_to_reduce != 0:
+            if eval_of_current_move >= search_state.alpha - 1 and extra_depth_to_reduce != 0:
                 # Must redo full search in this case (LMR was not correct here)
                 new_search_state = OthelloSearchState(search_state.best_moves, \
                     search_state.hash_moves, search_state.depth - 1, \
@@ -309,7 +309,7 @@ def alpha_beta_search(game_state, search_state):
                     search_state.hash_moves, search_state.depth - 1 - extra_depth_to_reduce, \
                     search_state.max_depth, search_state.alpha, search_state.beta)
             eval_of_current_move = alpha_beta_search(new_game_state, new_search_state)
-            if eval_of_current_move <= search_state.beta and extra_depth_to_reduce != 0:
+            if eval_of_current_move <= search_state.beta + 1 and extra_depth_to_reduce != 0:
                 new_search_state = OthelloSearchState(search_state.best_moves, \
                     search_state.hash_moves, search_state.depth - 1, \
                     search_state.max_depth, search_state.alpha, search_state.beta)
