@@ -40,9 +40,9 @@ def heuristic_evaluation(game_state):
     corners = [1, 1 << 7, 1 << 56, 1 << 63]
     for corner in corners:
         if game_state.black_bitboard & corner:
-            evaluation += 7
+            evaluation += 4
         elif game_state.white_bitboard & corner:
-            evaluation -= 7
+            evaluation -= 4
 
     X_squares = [1 << 9, 1<< 14, 1 << 47, 1 << 54]
     for index in range(4):
@@ -56,6 +56,7 @@ def heuristic_evaluation(game_state):
             evaluation -= 2
         elif square & game_state.white_bitboard:
             evaluation += 2
+    
     C_squares = [1 << 1, 1 << 8, 1 << 6, 1 << 15, 1 << 48, 1 << 57, 1 << 55, 1 << 62]
     C_square_adjacents = [1 << 2, 1 << 16, 1 << 5, 1 << 22, 1 << 40, 1 << 58, 1 << 47, 1 << 61]
     for index, c_sqaure in enumerate(C_squares):
@@ -135,7 +136,107 @@ def heuristic_evaluation(game_state):
                 C_square_adjacents[index] & game_state.white_bitboard:
                 evaluation += 2
 
-    if no_empty_spaces > 20:
+    top_row = 0xFF00000000000000
+    bottom_row = 0x00000000000000FF
+    left_row = 0x8080808080808080
+    right_row = 0x0101010101010101
+    if not (taken_spaces ^ top_row) & top_row: # i.e. top_row completely filled
+        evaluation += number_of_bits_set(game_state.black_bitboard & top_row)
+        evaluation -= number_of_bits_set(game_state.white_bitboard & top_row)
+    if not (taken_spaces ^ bottom_row) & bottom_row:
+        evaluation += number_of_bits_set(game_state.black_bitboard & bottom_row)
+        evaluation -= number_of_bits_set(game_state.white_bitboard & bottom_row)
+    if not (taken_spaces ^ left_row) & left_row:
+        evaluation += number_of_bits_set(game_state.black_bitboard & left_row)
+        evaluation -= number_of_bits_set(game_state.white_bitboard & left_row)
+    if not (taken_spaces ^ right_row) & right_row:
+        evaluation += number_of_bits_set(game_state.black_bitboard & right_row)
+        evaluation -= number_of_bits_set(game_state.white_bitboard & right_row)
+    for i in range(8):
+        square = 1 << i
+        if not game_state.black_bitboard & square:
+            evaluation += i # Will get extra 2 for any corner! (+1 from each direction)
+            # Notice nothing will be added if full row is black since this is
+            # already covered in code above
+            break
+    for i in range(8):
+        square = 1 << i
+        if not game_state.white_bitboard & square:
+            evaluation -= i
+            break
+    for i in range(8):
+        square = 1 << (7 - i)
+        if not game_state.black_bitboard & square:
+            evaluation += i
+            break
+    for i in range(8):
+        square = 1 << (7 - i)
+        if not game_state.white_bitboard & square:
+            evaluation -= i
+            break
+    for i in range(8):
+        square = 1 << (56 + i)
+        if not game_state.black_bitboard & square:
+            evaluation += i
+            break
+    for i in range(8):
+        square = 1 << (56 + i)
+        if not game_state.white_bitboard & square:
+            evaluation -= i
+            break
+    for i in range(8):
+        square = 1 << (63 - i)
+        if not game_state.black_bitboard & square:
+            evaluation += i
+            break
+    for i in range(8):
+        square = 1 << (63 - i)
+        if not game_state.white_bitboard & square:
+            evaluation -= i
+            break
+    for i in range(8):
+        square = 1 << (8*i)
+        if not game_state.black_bitboard & square:
+            evaluation += i
+            break
+    for i in range(8):
+        square = 1 << (8*i)
+        if not game_state.white_bitboard & square:
+            evaluation -= i
+            break
+    for i in range(8):
+        square = 1 << (56 - 8*i)
+        if not game_state.black_bitboard & square:
+            evaluation += i
+            break
+    for i in range(8):
+        square = 1 << (56 - 8*i)
+        if not game_state.white_bitboard & square:
+            evaluation -= i
+            break
+    for i in range(8):
+        square = 1 << (7 + 8*i)
+        if not game_state.black_bitboard & square:
+            evaluation += i
+            break
+    for i in range(8):
+        square = 1 << (7 + 8*i)
+        if not game_state.white_bitboard & square:
+            evaluation -= i
+            break
+    for i in range(8):
+        square = 1 << (63 - 8*i)
+        if not game_state.black_bitboard & square:
+            evaluation += i
+            break
+    for i in range(8):
+        square = 1 << (63 - 8*i)
+        if not game_state.white_bitboard & square:
+            evaluation -= i
+            break
+
+
+    if no_empty_spaces > 18:
         game_state.current_player = 1
         no_black_moves = number_of_bits_set(find_legal_moves(game_state))
         evaluation += no_black_moves
@@ -143,20 +244,22 @@ def heuristic_evaluation(game_state):
         no_white_moves = number_of_bits_set(find_legal_moves(game_state))
         evaluation -= no_white_moves
 
-    elif no_empty_spaces > 10:
+    elif no_empty_spaces > 7:
         game_state.current_player = 1
-        no_black_moves = number_of_bits_set(find_legal_moves(game_state))
+        no_black_moves = 2*number_of_bits_set(find_legal_moves(game_state))
+        # 2* so not left without moves late on
         evaluation += no_black_moves
         game_state.current_player = 2
-        no_white_moves = number_of_bits_set(find_legal_moves(game_state))
+        no_white_moves = 2*number_of_bits_set(find_legal_moves(game_state))
         evaluation -= no_white_moves
         # Next count the pieces of each player for the eval
-        evaluation += number_of_bits_set(game_state.black_bitboard)
-        evaluation -= number_of_bits_set(game_state.white_bitboard)
+        evaluation += 0.5*number_of_bits_set(game_state.black_bitboard)
+        # 0.5 since are a lot more discs than moves so want to weight appropriately
+        evaluation -= 0.5*number_of_bits_set(game_state.white_bitboard)
 
-    else: # In this case there are <= 10 moves left
-        evaluation += number_of_bits_set(game_state.black_bitboard)
-        evaluation -= number_of_bits_set(game_state.white_bitboard)
+    else: # In this case there are <= 4 moves left
+        evaluation = 0.5*number_of_bits_set(game_state.black_bitboard)
+        evaluation -= 0.5*number_of_bits_set(game_state.white_bitboard)
     return evaluation
 
 def number_of_bits_set(bitboard):
@@ -192,22 +295,22 @@ def iterative_deepening_search(game_state, max_depth):
             break
 
     increased_depth = 0
-    # while not time_up and max_depth + increased_depth < 20: 
-    #     # Increase depth if not much time has elapsed
-    #     # Second condition for at game end when don't want to loop excessively
-    #     increased_depth += 1
-    #     if time_taken < 0.25:
-    #         start_time = time.time()
-    #         game_state_copy = OthelloGameState(game_state.black_bitboard, \
-    #             game_state.white_bitboard, game_state.current_player)
-    #         search_state.depth = max_depth + increased_depth
-    #         search_state.alpha = float('-inf')
-    #         search_state.beta = float('inf')
-    #         final_evaluation = alpha_beta_search(game_state_copy, search_state)
-    #         time_taken += time.time() - start_time
-    #     else:
-    #         print('Max depth achieved 2', max_depth + increased_depth - 1)
-    #         break
+    while not time_up and max_depth + increased_depth < 20: 
+        # Increase depth if not much time has elapsed
+        # Second condition for at game end when don't want to loop excessively
+        increased_depth += 1
+        if time_taken < 0.25:
+            start_time = time.time()
+            game_state_copy = OthelloGameState(game_state.black_bitboard, \
+                game_state.white_bitboard, game_state.current_player)
+            search_state.depth = max_depth + increased_depth
+            search_state.alpha = float('-inf')
+            search_state.beta = float('inf')
+            final_evaluation = alpha_beta_search(game_state_copy, search_state)
+            time_taken += time.time() - start_time
+        else:
+            print('Max depth achieved 2', max_depth + increased_depth - 1)
+            break
     game_state_key = (game_state.black_bitboard, game_state.white_bitboard, \
                         game_state.current_player)
     best_move = search_state.best_moves.get(game_state_key)

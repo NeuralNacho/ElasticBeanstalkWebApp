@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from backend.Othello.get_othello_move import othello_blueprint
 import cProfile
 # from flask_cors import CORS
@@ -11,7 +11,8 @@ application.register_blueprint(othello_blueprint)
 @application.route('/')
 def index():
     # This method will display the static page (html, css, js)
-    return application.send_static_file('index.html')
+    return application.send_static_file('index.html') # ORIGINAL WEBPAGE
+    # return render_template('othello-react-index.html') # WITH REACT
 
 if __name__ == '__main__':
     application.run(debug = True)
